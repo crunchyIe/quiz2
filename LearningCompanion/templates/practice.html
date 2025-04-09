@@ -1,0 +1,218 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="mb-0">
+                        <i class="fas fa-pencil-alt me-2 text-primary"></i>
+                        AI-Generated Practice Questions
+                    </h1>
+                    <div>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">{{ document.title }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-end mb-3">
+                            <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#documentContent">
+                                <i class="fas fa-eye me-1"></i> View Document Content
+                            </button>
+                        </div>
+                        
+                        <div class="collapse mb-4" id="documentContent">
+                            <div class="card card-body bg-light">
+                                <h4 class="mb-3">Document Content</h4>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    <p style="white-space: pre-line;">{{ document.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <ul class="nav nav-tabs" id="questionTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="mcq-tab" data-bs-toggle="tab" data-bs-target="#mcq" type="button" role="tab" aria-controls="mcq" aria-selected="true">
+                                    <i class="fas fa-check-circle me-2"></i>Multiple Choice Questions ({{ mcq_questions|length }})
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="subjective-tab" data-bs-toggle="tab" data-bs-target="#subjective" type="button" role="tab" aria-controls="subjective" aria-selected="false">
+                                    <i class="fas fa-edit me-2"></i>Subjective Questions ({{ subjective_questions|length }})
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content p-3" id="questionTabsContent">
+                            <!-- MCQ Tab -->
+                            <div class="tab-pane fade show active" id="mcq" role="tabpanel" aria-labelledby="mcq-tab">
+                                {% if mcq_questions %}
+                                <form id="mcqForm">
+                                    {% for question in mcq_questions %}
+                                    <div class="card mb-4 question-card" id="mcq-question-{{ question.id }}">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">Question {{ loop.index }}</h5>
+                                            <span class="badge bg-info">MCQ</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="alert alert-secondary mb-3">
+                                                <h6 class="fw-bold mb-2">Question:</h6>
+                                                <p class="question-text mb-0">{{ question.question_text }}</p>
+                                            </div>
+                                            
+                                            <h6 class="fw-bold mb-2">Select the correct answer:</h6>
+                                            <div class="options-container">
+                                                {% for option in question.get_options() %}
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="radio" name="mcq-{{ question.id }}" id="mcq-{{ question.id }}-option-{{ loop.index }}" value="{{ option }}">
+                                                    <label class="form-check-label" for="mcq-{{ question.id }}-option-{{ loop.index }}">
+                                                        {{ option }}
+                                                    </label>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            
+                                            <div class="mt-3 d-none feedback-container">
+                                                <div class="alert correct-answer d-none alert-success">
+                                                    <i class="fas fa-check-circle me-2"></i>
+                                                    <span>Correct! The answer is: {{ question.correct_answer }}</span>
+                                                </div>
+                                                <div class="alert wrong-answer d-none alert-danger">
+                                                    <i class="fas fa-times-circle me-2"></i>
+                                                    <span>Incorrect. The correct answer is: {{ question.correct_answer }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            <button type="button" class="btn btn-primary check-answer" data-question-id="{{ question.id }}" data-correct-answer="{{ question.correct_answer }}">
+                                                Check Answer
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </form>
+                                {% else %}
+                                <div class="alert alert-info" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No multiple choice questions have been generated for this document yet.
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Subjective Tab -->
+                            <div class="tab-pane fade" id="subjective" role="tabpanel" aria-labelledby="subjective-tab">
+                                {% if subjective_questions %}
+                                <form id="subjectiveForm">
+                                    {% for question in subjective_questions %}
+                                    <div class="card mb-4 question-card" id="subj-question-{{ question.id }}">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">Question {{ loop.index }}</h5>
+                                            <span class="badge bg-success">Subjective</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="alert alert-secondary mb-3">
+                                                <h6 class="fw-bold mb-2">Question:</h6>
+                                                <p class="question-text mb-0">{{ question.question_text }}</p>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="subj-{{ question.id }}-answer" class="form-label fw-bold">Your Answer:</label>
+                                                <textarea class="form-control" id="subj-{{ question.id }}-answer" rows="4" placeholder="Write your answer here..."></textarea>
+                                            </div>
+                                            
+                                            <div class="mt-3 d-none feedback-container">
+                                                <div class="alert answer-guidance alert-info">
+                                                    <h6 class="mb-2"><i class="fas fa-lightbulb me-2"></i>Reference Answer:</h6>
+                                                    <p class="mb-0">{{ question.correct_answer }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            <button type="button" class="btn btn-primary show-answer" data-question-id="{{ question.id }}">
+                                                Show Reference Answer
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </form>
+                                {% else %}
+                                <div class="alert alert-info" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No subjective questions have been generated for this document yet.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // MCQ answer checking
+        document.querySelectorAll('.check-answer').forEach(button => {
+            button.addEventListener('click', function() {
+                const questionId = this.getAttribute('data-question-id');
+                const correctAnswer = this.getAttribute('data-correct-answer');
+                const questionCard = document.getElementById('mcq-question-' + questionId);
+                const selectedOption = questionCard.querySelector('input[name="mcq-' + questionId + '"]:checked');
+                const feedbackContainer = questionCard.querySelector('.feedback-container');
+                const correctFeedback = questionCard.querySelector('.correct-answer');
+                const wrongFeedback = questionCard.querySelector('.wrong-answer');
+                
+                // Reset feedback
+                feedbackContainer.classList.remove('d-none');
+                correctFeedback.classList.add('d-none');
+                wrongFeedback.classList.add('d-none');
+                
+                if (!selectedOption) {
+                    alert('Please select an answer first.');
+                    feedbackContainer.classList.add('d-none');
+                    return;
+                }
+                
+                // Check if answer is correct
+                if (selectedOption.value === correctAnswer) {
+                    correctFeedback.classList.remove('d-none');
+                } else {
+                    wrongFeedback.classList.remove('d-none');
+                }
+                
+                // Disable further changes
+                questionCard.querySelectorAll('input[type="radio"]').forEach(input => {
+                    input.disabled = true;
+                });
+                
+                // Change button
+                this.textContent = 'Answered';
+                this.disabled = true;
+            });
+        });
+        
+        // Subjective answer showing
+        document.querySelectorAll('.show-answer').forEach(button => {
+            button.addEventListener('click', function() {
+                const questionId = this.getAttribute('data-question-id');
+                const questionCard = document.getElementById('subj-question-' + questionId);
+                const feedbackContainer = questionCard.querySelector('.feedback-container');
+                
+                feedbackContainer.classList.remove('d-none');
+                this.textContent = 'Reference Answer Shown';
+                this.disabled = true;
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="mb-0">
+                        <i class="fas fa-user-graduate me-2 text-success"></i>
+                        Student Dashboard
+                    </h1>
+                </div>
+                
+                <div class="card bg-light mb-4">
+                    <div class="card-body p-4">
+                        <h3>Welcome to the Student Dashboard</h3>
+                        <p class="lead">
+                            Select a document below to practice with generated questions. 
+                            Test your knowledge with both multiple-choice and subjective questions.
+                        </p>
+                    </div>
+                </div>
+                
+                <h3 class="mb-3">
+                    <i class="fas fa-book me-2"></i>
+                    Available Documents
+                </h3>
+                
+                {% if documents %}
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    {% for document in documents %}
+                    {% if document.processed %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ document.title }}</h5>
+                                <p class="card-text text-muted">
+                                    <small>Uploaded: {{ document.created_at.strftime('%Y-%m-%d') }}</small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <a href="{{ url_for('practice', document_id=document.id) }}" class="btn btn-primary">
+                                        <i class="fas fa-pencil-alt me-2"></i>Practice
+                                    </a>
+                                    <span class="badge bg-success">Ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <!-- Documents still processing -->
+                {% set processing_docs = documents|selectattr('processed', 'equalto', false)|list %}
+                {% if processing_docs %}
+                <div class="card mt-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">Documents Being Processed</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Uploaded On</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doc in processing_docs %}
+                                    <tr>
+                                        <td>{{ doc.title }}</td>
+                                        <td>{{ doc.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="spinner-border spinner-border-sm text-warning me-2" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <span>Processing</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-muted mb-0">
+                            <small>Please check back in a few moments. The system is analyzing these documents and generating questions.</small>
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="card">
+                    <div class="card-body text-center p-5">
+                        <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                        <h4>No Documents Available</h4>
+                        <p class="text-muted">There are no documents available for practice yet.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
